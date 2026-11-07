@@ -1,0 +1,69 @@
+# Konica Auto S3 digital back — settings.
+# install.sh copies this to config.toml on the Pi. Edit config.toml there;
+# deploy.sh never overwrites it.
+
+[capture]
+# "lens"   – (default) the Konica's own leaf shutter sets the exposure. The sensor
+#            runs back-to-back long exposures; press the back's shutter button,
+#            then fire the camera's shutter. The back keeps the frame(s) that
+#            caught the light.
+# "sensor" – the lens shutter is held open; the back's button takes a normal
+#            auto-exposed digital photo.
+mode = "lens"
+
+# Any of "dng" (raw), "jpg", "heif". HEIF is encoded in the background and is
+# slow on a Pi Zero 2 W (several seconds per photo).
+formats = ["dng", "jpg"]
+jpeg_quality = 93
+heif_quality = 85
+
+photo_dir = "~/DCIM"
+filename_prefix = "KS3_"
+
+# Flip the image if it comes out upside-down or mirrored.
+hflip = false
+vflip = false
+
+# Camera tuning file. Leave empty for the standard IMX477 tuning.
+# The HQ-style module's IR-cut filter sits in the lens-mount ring; if that ring
+# is off, infrared reaches the sensor and you get a pink/magenta cast.
+# "imx477_noir.json" corrects for that in software (a real IR-cut filter is better).
+tuning = ""
+
+[lens_mode]
+# true: only keep a shot after the back's shutter button has been pressed.
+# false: fully automatic — any burst of light from the lens is saved.
+require_button = true
+# How long after pressing the button the back waits for the lens to fire.
+arm_seconds = 3.0
+# Length of each sensor exposure. The lens shutter (1/8–1/500 s) fires inside it.
+window_s = 1.0
+# Sensor analogue gain. Starting point: the ASA set on the Konica's dial / 100.
+gain = 1.0
+# Fixed white balance (red gain, blue gain). Auto white balance can't run on
+# frames that are dark between shots. Take a "sensor" mode shot in daylight and
+# copy the ColourGains it logs to here.
+wb_gains = [2.0, 1.8]
+# How much brighter (0-255 luma) than the dark background counts as a shot.
+trigger_delta = 6.0
+# If the shutter fired across a frame boundary, add the two raw frames together.
+merge_split_frames = true
+
+[buttons]
+# BCM GPIO numbers; -1 disables a button. Run `python -m konicaback buttons`
+# to find which pins your buttons are on.
+shutter_gpio = 27
+power_gpio = 22
+# Hold the power button this long to shut down.
+power_hold_s = 2.0
+bounce_s = 0.03
+
+[feedback]
+# Optional LED or buzzer on a GPIO (BCM number); -1 = none.
+# 1 blink: ready / armed · 2 blinks: saved · 1 long: nothing captured or error.
+gpio = -1
+
+[controls]
+# Extra libcamera controls applied in both modes, for example:
+# Sharpness = 1.0
+# Saturation = 1.0

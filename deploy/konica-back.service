@@ -1,0 +1,15 @@
+[Unit]
+Description=Konica Auto S3 digital back
+After=local-fs.target
+
+[Service]
+Type=simple
+User=__USER__
+WorkingDirectory=__DIR__
+ExecStart=__DIR__/.venv/bin/python -m konicaback --config __DIR__/config.toml run
+Restart=on-failure
+RestartSec=3
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target
