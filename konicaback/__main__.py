@@ -3,6 +3,7 @@
     python -m konicaback run            # the service (what systemd runs)
     python -m konicaback shoot          # take one photo from an SSH session
     python -m konicaback buttons        # find which GPIOs the buttons are on
+    python -m konicaback led [GPIO]     # blink a pin to find the LED (default 18)
     python -m konicaback info           # camera modes and memory check
 """
 from __future__ import annotations
@@ -27,6 +28,8 @@ def main(argv=None) -> int:
     sp = sub.add_parser("shoot", help="take one photo now")
     sp.add_argument("--timeout", type=float, default=30, help="lens mode: seconds to wait")
     sub.add_parser("buttons", help="report GPIO presses")
+    lp = sub.add_parser("led", help="blink a GPIO to find the LED")
+    lp.add_argument("gpio", type=int, nargs="?", default=18)
     sub.add_parser("info", help="camera and memory info")
     args = ap.parse_args(argv)
 
@@ -39,6 +42,11 @@ def main(argv=None) -> int:
     if cmd == "buttons":
         from .hardware import find_buttons
         find_buttons()
+        return 0
+
+    if cmd == "led":
+        from .hardware import test_led
+        test_led(args.gpio)
         return 0
 
     if cmd == "info":

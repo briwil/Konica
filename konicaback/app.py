@@ -75,8 +75,10 @@ def run(cfg: dict, use_gpio: bool = True) -> None:
             if mode == "lens":
                 result = cam.poll_lens()  # blocks for about one exposure window
                 if isinstance(result, Shot):
+                    feedback.off()  # photo caught; LED off while saving
                     _handle(result, storage, cfg, heif, feedback)
                 elif result == MISSED:
+                    feedback.off()
                     feedback.missed()
                 ev = _drain(events)
             else:

@@ -9,8 +9,10 @@ LiPo. It saves **DNG raw**, **JPEG**, and/or **HEIF**.
 **Lens mode** (default): the Konica's own leaf shutter and auto-exposure set
 the exposure.
 
-1. Press the **shutter button on the back**.
-2. Within ~3 s, fire the **camera's shutter release**.
+1. Press the **shutter button on the back**. The **LED comes on**.
+2. While it's lit (up to ~3 s), fire the **camera's shutter release**.
+3. The LED goes out once the photo is caught, then **blinks twice** when it's
+   saved. One **long blink** means no light arrived in time.
 
 While idle, the sensor runs back-to-back 1-second exposures, which stay black
 while the lens shutter is closed. Pressing the back's button "arms" it. The
@@ -29,29 +31,47 @@ normal auto-exposed digital photo.
 
 1. Use Raspberry Pi Imager to flash **Raspberry Pi OS Lite (64-bit)**. In its
    settings, set hostname `konica`, enable SSH, and add your Wi-Fi.
-2. On your computer, clone this repo and run:
+2. SSH in (`ssh pi@konica.local`) and clone the repo onto the Pi:
    ```bash
-   ./deploy.sh --install
+   sudo apt-get install -y git
+   git clone https://github.com/briwil/Konica.git ~/konica-back
+   ~/konica-back/deploy/install.sh
    ```
-   This copies the code to `~/konica-back` on the Pi, installs packages, and
-   sets up the `konica-back` service. Use `KONICA_USER=yourname` if your Pi
-   user isn't `pi`.
-3. Check the hardware over SSH (`ssh pi@konica.local`):
+   This installs packages and sets up two services: `konica-back` (the camera)
+   and `konica-update` (updates from GitHub at boot). If the repo is private,
+   the Pi first needs a read-only deploy key (see *Updates* below).
+3. Check the hardware:
    ```bash
    cd konica-back
    .venv/bin/python -m konicaback info      # camera found? enough CMA memory?
    .venv/bin/python -m konicaback buttons   # press each button and note its GPIO
+   .venv/bin/python -m konicaback led 18    # does the LED blink?
    ```
-   Put the GPIO numbers in `config.toml` under `[buttons]`.
+   Put the button GPIOs in `config.toml` under `[buttons]` and the LED's under
+   `[feedback]`. Run the `led` test before starting the service: the service
+   drives that pin, which would be bad for it if it turned out to be a button.
 4. `sudo systemctl start konica-back`
+
+## Updates
+
+Each time the Pi boots and can reach GitHub, it pulls the latest `main` and
+restarts the camera software. Without Wi-Fi it skips this and the camera
+starts as usual. It only fast-forwards: if you've edited code directly on the
+Pi, it leaves your edits alone and doesn't update. To check what happened:
+`journalctl -u konica-update -b`. To update right away without rebooting,
+run `~/konica-back/deploy/auto-update.sh`.
+
+**Private repo:** on the Pi, run `ssh-keygen -t ed25519` (press Enter at
+every prompt), then `cat ~/.ssh/id_ed25519.pub`. Add that line on GitHub
+under *Konica → Settings → Deploy keys* (read-only). Then point the clone at
+SSH: `git -C ~/konica-back remote set-url origin git@github.com:briwil/Konica.git`.
 
 ## Day to day
 
 | On your computer | What it does |
 |---|---|
-| `./deploy.sh` | push code changes and restart |
-| `./deploy.sh --logs` | same, then follow the log |
 | `scripts/pull-photos.sh` | copy photos from the Pi into `./photos` |
+| `./deploy.sh` | push local, uncommitted code to the Pi for quick testing |
 
 On the Pi, `python -m konicaback shoot` takes one photo from the terminal,
 which is handy for testing. Settings live in `~/konica-back/config.toml` on the

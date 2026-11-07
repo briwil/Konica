@@ -32,7 +32,7 @@ DEFAULTS = {
         "power_hold_s": 2.0,
         "bounce_s": 0.03,
     },
-    "feedback": {"gpio": -1},
+    "feedback": {"gpio": 18},
     "controls": {},
 }
 

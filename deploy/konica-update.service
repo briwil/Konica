@@ -1,0 +1,14 @@
+[Unit]
+Description=Konica back: pull updates from GitHub at boot
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=__USER__
+WorkingDirectory=__DIR__
+ExecStart=__DIR__/deploy/auto-update.sh
+TimeoutStartSec=180
+
+[Install]
+WantedBy=multi-user.target

@@ -28,8 +28,15 @@ mkdir -p "$HOME/DCIM"
 echo "==> systemd service"
 sed "s|__USER__|$USER|g; s|__DIR__|$DIR|g" "$DIR/deploy/konica-back.service" \
   | sudo tee /etc/systemd/system/konica-back.service >/dev/null
+sed "s|__USER__|$USER|g; s|__DIR__|$DIR|g" "$DIR/deploy/konica-update.service" \
+  | sudo tee /etc/systemd/system/konica-update.service >/dev/null
+chmod +x "$DIR/deploy/auto-update.sh"
 sudo systemctl daemon-reload
-sudo systemctl enable konica-back
+sudo systemctl enable konica-back konica-update
+if [ ! -d "$DIR/.git" ]; then
+  echo "   (Not a git clone, so updates from GitHub at boot are off."
+  echo "    Clone the repo onto the Pi to turn them on.)"
+fi
 
 echo "==> Checks"
 BOOTCFG=/boot/firmware/config.txt

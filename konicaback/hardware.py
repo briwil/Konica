@@ -62,14 +62,40 @@ class Feedback:
             self.led.blink(on_time=on, off_time=off, n=n, background=True)
 
     def ready(self): self._blink(1)
-    def armed(self): self._blink(1, on=0.05)
     def saved(self): self._blink(2)
     def missed(self): self._blink(1, on=0.8)
     error = missed
 
+    def armed(self):
+        """Solid on: ready for the camera's real shutter."""
+        if self.led:
+            self.led.on()
+
+    def off(self):
+        if self.led:
+            self.led.off()
+
     def close(self):
         if self.led:
             self.led.close()
+
+
+def test_led(gpio: int) -> None:
+    """Blink a GPIO slowly so you can see whether it's the LED."""
+    from gpiozero import LED
+
+    print(f"Blinking GPIO{gpio} (header pin {PHYSICAL.get(gpio, '?')}) 5 times. "
+          "Don't press any buttons while it runs.", flush=True)
+    led = LED(gpio)
+    try:
+        for _ in range(5):
+            led.on()
+            time.sleep(0.5)
+            led.off()
+            time.sleep(0.5)
+    finally:
+        led.close()
+    print("Done. If the LED blinked, set [feedback] gpio in config.toml to this number.")
 
 
 def find_buttons() -> None:

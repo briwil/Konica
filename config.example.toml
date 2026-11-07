@@ -59,9 +59,12 @@ power_hold_s = 2.0
 bounce_s = 0.03
 
 [feedback]
-# Optional LED or buzzer on a GPIO (BCM number); -1 = none.
-# 1 blink: ready / armed · 2 blinks: saved · 1 long: nothing captured or error.
-gpio = -1
+# LED on a GPIO (BCM number); -1 = none. Confirm it with `python -m konicaback led`
+# before relying on it.
+#   solid on   – armed: fire the camera's shutter now
+#   2 blinks   – photo saved
+#   1 long     – nothing captured in time, or an error
+gpio = 18
 
 [controls]
 # Extra libcamera controls applied in both modes, for example:
