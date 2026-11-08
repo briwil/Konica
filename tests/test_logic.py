@@ -145,7 +145,7 @@ def test_config_example_parses():
     assert cfg["capture"]["mode"] == "lens"
     assert cfg["buttons"]["shutter_gpio"] == 17 and cfg["buttons"]["power_gpio"] == -1
     fb = cfg["feedback"]
-    assert (fb["red_gpio"], fb["green_gpio"], fb["blue_gpio"]) == (18, 22, 27)
+    assert (fb["red_gpio"], fb["green_gpio"], fb["blue_gpio"]) == (27, 18, 22)
 
 
 def test_pin_collision_rejected():

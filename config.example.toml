@@ -60,14 +60,14 @@ bounce_s = 0.03
 
 [feedback]
 # One RGB LED, common ground, one GPIO per colour. -1 = not wired.
-# These three numbers are a guess: run `python -m konicaback led`. It lights one
-# pin at a time, asks which colour you see, and saves the answers here.
+# Confirmed on the real LED. If you rewire, run `python -m konicaback led`: it
+# lights one pin at a time, asks which colour you see, and saves the answers here.
 #   green: armed (solid: fire the camera's shutter now) and saved (2 blinks)
 #   red:   no light arrived in time, or an error (1 long blink)
 #   blue:  ready at start-up (1 blink)
-red_gpio = 18
-green_gpio = 22
-blue_gpio = 27
+red_gpio = 27
+green_gpio = 18
+blue_gpio = 22
 
 [controls]
 # Extra libcamera controls applied in both modes, for example:

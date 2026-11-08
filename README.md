@@ -32,9 +32,9 @@ down over SSH with `sudo shutdown now` before switching off the battery.
 it for 2 s then shuts down cleanly.)
 
 **Wiring (BCM GPIO):** shutter button on GPIO17 (header pin 11) to ground;
-RGB LED on GPIO18 (pin 12), GPIO22 (pin 15) and GPIO27 (pin 13), common
-ground, each colour through its own resistor. Which GPIO is which colour is
-set by the `led` test below.
+RGB LED on GPIO27 (pin 13, red), GPIO18 (pin 12, green) and GPIO22 (pin 15,
+blue), common ground, each colour through its own resistor. If you rewire,
+the `led` test below re-maps the colours.
 
 ## First-time setup
 
