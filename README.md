@@ -9,10 +9,11 @@ LiPo. It saves **DNG raw**, **JPEG**, and/or **HEIF**.
 **Lens mode** (default): the Konica's own leaf shutter and auto-exposure set
 the exposure.
 
-1. Press the **shutter button on the back**. The **LED comes on**.
+1. Press the **shutter button on the back**. The LED comes on **solid**.
 2. While it's lit (up to ~3 s), fire the **camera's shutter release**.
-3. The LED goes out once the photo is caught, then **blinks twice** when it's
-   saved. One **long blink** means no light arrived in time.
+3. The LED goes out once the photo is caught, then **blinks twice** in the
+   same colour when it's saved. One **long blink in the other colour** means
+   no light arrived in time.
 
 While idle, the sensor runs back-to-back 1-second exposures, which stay black
 while the lens shutter is closed. Pressing the back's button "arms" it. The
@@ -25,7 +26,14 @@ Set `require_button = false` to skip step 1; then any burst of light is saved.
 **Sensor mode**: if the lens shutter is held open, the back's button takes a
 normal auto-exposed digital photo.
 
-**Power button**: hold 2 s to shut down cleanly.
+**Shutting down:** the back has no working power button wired. Shut the Pi
+down over SSH with `sudo shutdown now` before switching off the battery.
+(If you wire a power button later, set `power_gpio` in `config.toml`; holding
+it for 2 s then shuts down cleanly.)
+
+**Wiring (BCM GPIO):** shutter button on GPIO18 (header pin 12) to ground;
+two-colour LED on GPIO22 (pin 15) and GPIO27 (pin 13), common ground, each
+colour through its own resistor.
 
 ## First-time setup
 
@@ -45,11 +53,13 @@ normal auto-exposed digital photo.
    cd konica-back
    .venv/bin/python -m konicaback info      # camera found? enough CMA memory?
    .venv/bin/python -m konicaback buttons   # press each button and note its GPIO
-   .venv/bin/python -m konicaback led 18    # does the LED blink?
+   .venv/bin/python -m konicaback led       # lights each LED colour in turn
    ```
-   Put the button GPIOs in `config.toml` under `[buttons]` and the LED's under
-   `[feedback]`. Run the `led` test before starting the service: the service
-   drives that pin, which would be bad for it if it turned out to be a button.
+   The defaults match the wiring above. If a pin differs, set it in
+   `config.toml` (`[buttons]` and `[feedback]`). If the two LED colours come
+   out the wrong way round (green means "missed"), swap `ok_gpio` and
+   `warn_gpio`. The program refuses to start if one pin is used twice, and
+   the `led` test refuses to drive a button pin.
 4. `sudo systemctl start konica-back`
 
 ## Updates
@@ -112,17 +122,16 @@ encoding a 12 MP HEIF on a Zero 2 W takes several seconds and a lot of RAM.
 The 300 mAh cell holds about 1.1 Wh. A Zero 2 W plus the sensor draws roughly
 1–1.5 W, so expect **around 45 minutes** per charge. Every photo is synced to
 the SD card as it's written, so a dead battery shouldn't lose shots. Only
-**GPIO3 (header pin 5)** can wake a halted Pi. To make the power button turn
-the Pi on as well as off, wire it to pin 5 + GND, add
-`dtoverlay=gpio-shutdown,gpio_pin=3` to `config.txt`, and set
-`power_gpio = -1` (the kernel then handles shutdown).
+**GPIO3 (header pin 5)** can wake a halted Pi. If you later add a power
+button that turns the Pi on as well as off, wire it to pin 5 + GND and add
+`dtoverlay=gpio-shutdown,gpio_pin=3` to `config.txt`.
 
 ## Layout
 
 ```
 konicaback/camera.py    sensor control, lens-shot detection, raw merging
 konicaback/app.py       main loop and saving
-konicaback/hardware.py  buttons, status LED, button finder
+konicaback/hardware.py  buttons, two-colour status LED, pin finder
 konicaback/storage.py   file numbering, background HEIF encoder
 deploy/                 Pi installer + systemd unit
 tests/test_logic.py     hardware-free tests (python3 tests/test_logic.py)

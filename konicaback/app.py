@@ -54,7 +54,7 @@ def run(cfg: dict, use_gpio: bool = True) -> None:
     events: queue.Queue = queue.Queue()
     storage = Storage(cfg["capture"]["photo_dir"], cfg["capture"]["filename_prefix"])
     heif = make_heif_worker(cfg)
-    feedback = Feedback(cfg["feedback"]["gpio"] if use_gpio else -1)
+    feedback = Feedback(cfg["feedback"] if use_gpio else {"ok_gpio": -1, "warn_gpio": -1})
     cam = Camera(cfg)
     mode = cfg["capture"]["mode"]
 

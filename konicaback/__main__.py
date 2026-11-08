@@ -3,7 +3,7 @@
     python -m konicaback run            # the service (what systemd runs)
     python -m konicaback shoot          # take one photo from an SSH session
     python -m konicaback buttons        # find which GPIOs the buttons are on
-    python -m konicaback led [GPIO]     # blink a pin to find the LED (default 18)
+    python -m konicaback led [GPIO ...] # light the LED colours in turn (default: configured pins)
     python -m konicaback info           # camera modes and memory check
 """
 from __future__ import annotations
@@ -29,7 +29,7 @@ def main(argv=None) -> int:
     sp.add_argument("--timeout", type=float, default=30, help="lens mode: seconds to wait")
     sub.add_parser("buttons", help="report GPIO presses")
     lp = sub.add_parser("led", help="blink a GPIO to find the LED")
-    lp.add_argument("gpio", type=int, nargs="?", default=18)
+    lp.add_argument("gpio", type=int, nargs="*")
     sub.add_parser("info", help="camera and memory info")
     args = ap.parse_args(argv)
 
@@ -44,17 +44,18 @@ def main(argv=None) -> int:
         find_buttons()
         return 0
 
-    if cmd == "led":
-        from .hardware import test_led
-        test_led(args.gpio)
-        return 0
-
     if cmd == "info":
         return info()
 
     cfg = config_mod.load(args.config)
     if args.mode:
         cfg["capture"]["mode"] = args.mode
+
+    if cmd == "led":
+        from .hardware import test_led
+        fb = cfg["feedback"]
+        test_led(cfg, args.gpio or [p for p in (fb["ok_gpio"], fb["warn_gpio"]) if p >= 0])
+        return 0
 
     if cmd == "run":
         from .app import run

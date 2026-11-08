@@ -27,12 +27,12 @@ DEFAULTS = {
         "merge_split_frames": True,
     },
     "buttons": {
-        "shutter_gpio": 27,
-        "power_gpio": 22,
+        "shutter_gpio": 18,
+        "power_gpio": -1,
         "power_hold_s": 2.0,
         "bounce_s": 0.03,
     },
-    "feedback": {"gpio": 18},
+    "feedback": {"ok_gpio": 22, "warn_gpio": 27},
     "controls": {},
 }
 
@@ -65,4 +65,17 @@ def load(path: str | Path | None) -> dict:
     if bad or not fmts:
         raise ValueError(f"capture.formats must be from {FORMATS}, got {cap['formats']!r}")
     cap["formats"] = fmts
+
+    # A pin used twice is a wiring mistake; driving a button's pin as an LED
+    # output can damage the Pi, so refuse to start.
+    pins = {}
+    for section, keys in (("buttons", ("shutter_gpio", "power_gpio")),
+                          ("feedback", ("ok_gpio", "warn_gpio"))):
+        for key in keys:
+            n = cfg[section][key]
+            if n < 0:
+                continue
+            if n in pins:
+                raise ValueError(f"GPIO{n} is used by both {pins[n]} and {section}.{key}")
+            pins[n] = f"{section}.{key}"
     return cfg

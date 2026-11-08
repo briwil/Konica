@@ -51,51 +51,74 @@ class Buttons:
 
 
 class Feedback:
-    def __init__(self, gpio: int):
-        self.led = None
-        if gpio >= 0:
+    """One two-colour LED, one GPIO per colour (common ground).
+
+    ok colour:   ready (1 blink), armed (solid), saved (2 blinks)
+    warn colour: nothing captured in time, or an error (1 long blink)
+    """
+
+    def __init__(self, fb: dict):
+        self.ok = self.warn = None
+        if fb["ok_gpio"] >= 0 or fb["warn_gpio"] >= 0:
             from gpiozero import LED
-            self.led = LED(gpio)
+            if fb["ok_gpio"] >= 0:
+                self.ok = LED(fb["ok_gpio"])
+            if fb["warn_gpio"] >= 0:
+                self.warn = LED(fb["warn_gpio"])
 
-    def _blink(self, n: int, on: float = 0.08, off: float = 0.15) -> None:
-        if self.led:
-            self.led.blink(on_time=on, off_time=off, n=n, background=True)
+    @staticmethod
+    def _blink(led, n: int, on: float = 0.08, off: float = 0.15) -> None:
+        if led:
+            led.blink(on_time=on, off_time=off, n=n, background=True)
 
-    def ready(self): self._blink(1)
-    def saved(self): self._blink(2)
-    def missed(self): self._blink(1, on=0.8)
+    def ready(self): self._blink(self.ok, 1)
+    def saved(self): self._blink(self.ok, 2)
+    def missed(self): self._blink(self.warn, 1, on=0.8)
     error = missed
 
     def armed(self):
-        """Solid on: ready for the camera's real shutter."""
-        if self.led:
-            self.led.on()
+        """Solid: ready for the camera's real shutter."""
+        if self.warn:
+            self.warn.off()
+        if self.ok:
+            self.ok.on()
 
     def off(self):
-        if self.led:
-            self.led.off()
+        for led in (self.ok, self.warn):
+            if led:
+                led.off()
 
     def close(self):
-        if self.led:
-            self.led.close()
+        for led in (self.ok, self.warn):
+            if led:
+                led.close()
 
 
-def test_led(gpio: int) -> None:
-    """Blink a GPIO slowly so you can see whether it's the LED."""
+def test_led(cfg: dict, pins: list[int]) -> None:
+    """Light each LED colour in turn so you can see which pin is which."""
     from gpiozero import LED
 
-    print(f"Blinking GPIO{gpio} (header pin {PHYSICAL.get(gpio, '?')}) 5 times. "
-          "Don't press any buttons while it runs.", flush=True)
-    led = LED(gpio)
+    used = {cfg["buttons"]["shutter_gpio"], cfg["buttons"]["power_gpio"]} - {-1}
+    clash = [p for p in pins if p in used]
+    if clash:
+        raise SystemExit(f"GPIO{clash[0]} is a button pin in config.toml; "
+                         "driving it as an LED could damage the Pi. Not running.")
+    leds = [(p, LED(p)) for p in pins]
+    print("Lighting each pin in turn, 3 rounds. Don't press any buttons.", flush=True)
     try:
-        for _ in range(5):
-            led.on()
-            time.sleep(0.5)
-            led.off()
-            time.sleep(0.5)
+        for _ in range(3):
+            for pin, led in leds:
+                print(f"  GPIO{pin} (header pin {PHYSICAL.get(pin, '?')}) on", flush=True)
+                led.on()
+                time.sleep(1.0)
+                led.off()
+                time.sleep(0.4)
     finally:
-        led.close()
-    print("Done. If the LED blinked, set [feedback] gpio in config.toml to this number.")
+        for _, led in leds:
+            led.close()
+    print("Done. Note which colour went with which GPIO. [feedback] ok_gpio is the "
+          "'good' colour (armed/saved), warn_gpio the 'miss' colour; swap the two "
+          "numbers in config.toml if they're the wrong way round.")
 
 
 def find_buttons() -> None:

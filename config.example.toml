@@ -50,21 +50,23 @@ trigger_delta = 6.0
 merge_split_frames = true
 
 [buttons]
-# BCM GPIO numbers; -1 disables a button. Run `python -m konicaback buttons`
-# to find which pins your buttons are on.
-shutter_gpio = 27
-power_gpio = 22
-# Hold the power button this long to shut down.
+# BCM GPIO numbers; -1 = not wired. Each button connects its pin to ground.
+# Run `python -m konicaback buttons` to check which pin a button is on.
+shutter_gpio = 18
+power_gpio = -1       # not wired; shut down over SSH: sudo shutdown now
+# Hold the power button this long to shut down (only if power_gpio is wired).
 power_hold_s = 2.0
 bounce_s = 0.03
 
 [feedback]
-# LED on a GPIO (BCM number); -1 = none. Confirm it with `python -m konicaback led`
-# before relying on it.
-#   solid on   – armed: fire the camera's shutter now
-#   2 blinks   – photo saved
-#   1 long     – nothing captured in time, or an error
-gpio = 18
+# One two-colour LED, common ground, one GPIO per colour. -1 = not wired.
+# Check which colour is which with `python -m konicaback led`, and swap the two
+# numbers if they're the wrong way round.
+#   ok_gpio:   colour for ready (1 blink), armed (solid: fire the shutter now),
+#              saved (2 blinks)
+#   warn_gpio: colour for "no light arrived in time" or an error (1 long blink)
+ok_gpio = 22
+warn_gpio = 27
 
 [controls]
 # Extra libcamera controls applied in both modes, for example:
