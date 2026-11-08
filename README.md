@@ -9,11 +9,11 @@ LiPo. It saves **DNG raw**, **JPEG**, and/or **HEIF**.
 **Lens mode** (default): the Konica's own leaf shutter and auto-exposure set
 the exposure.
 
-1. Press the **shutter button on the back**. The LED comes on **solid**.
+1. Press the **shutter button on the back**. The LED comes on **solid green**.
 2. While it's lit (up to ~3 s), fire the **camera's shutter release**.
-3. The LED goes out once the photo is caught, then **blinks twice** in the
-   same colour when it's saved. One **long blink in the other colour** means
-   no light arrived in time.
+3. The LED goes out once the photo is caught, then **blinks green twice**
+   when it's saved. One **long red blink** means no light arrived in time.
+   A single blue blink at start-up means it's ready.
 
 While idle, the sensor runs back-to-back 1-second exposures, which stay black
 while the lens shutter is closed. Pressing the back's button "arms" it. The
@@ -32,8 +32,9 @@ down over SSH with `sudo shutdown now` before switching off the battery.
 it for 2 s then shuts down cleanly.)
 
 **Wiring (BCM GPIO):** shutter button on GPIO18 (header pin 12) to ground;
-two-colour LED on GPIO22 (pin 15) and GPIO27 (pin 13), common ground, each
-colour through its own resistor.
+RGB LED on GPIO17 (pin 11), GPIO22 (pin 15) and GPIO27 (pin 13), common
+ground, each colour through its own resistor. Which GPIO is which colour is
+set by the `led` test below.
 
 ## First-time setup
 
@@ -55,11 +56,11 @@ colour through its own resistor.
    .venv/bin/python -m konicaback buttons   # press each button and note its GPIO
    .venv/bin/python -m konicaback led       # lights each LED colour in turn
    ```
-   The defaults match the wiring above. If a pin differs, set it in
-   `config.toml` (`[buttons]` and `[feedback]`). If the two LED colours come
-   out the wrong way round (green means "missed"), swap `ok_gpio` and
-   `warn_gpio`. The program refuses to start if one pin is used twice, and
-   the `led` test refuses to drive a button pin.
+   The shutter default matches the wiring above. The LED's red/green/blue
+   pin numbers are a guess: the `led` test lights each pin in turn, so
+   note the colour of each and set `red_gpio`, `green_gpio` and `blue_gpio`
+   under `[feedback]` in `config.toml`. The program refuses to start if one
+   pin is used twice, and the `led` test refuses to drive a button pin.
 4. `sudo systemctl start konica-back`
 
 ## Updates
@@ -131,7 +132,7 @@ button that turns the Pi on as well as off, wire it to pin 5 + GND and add
 ```
 konicaback/camera.py    sensor control, lens-shot detection, raw merging
 konicaback/app.py       main loop and saving
-konicaback/hardware.py  buttons, two-colour status LED, pin finder
+konicaback/hardware.py  buttons, RGB status LED, pin finder
 konicaback/storage.py   file numbering, background HEIF encoder
 deploy/                 Pi installer + systemd unit
 tests/test_logic.py     hardware-free tests (python3 tests/test_logic.py)

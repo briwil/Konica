@@ -32,7 +32,7 @@ DEFAULTS = {
         "power_hold_s": 2.0,
         "bounce_s": 0.03,
     },
-    "feedback": {"ok_gpio": 22, "warn_gpio": 27},
+    "feedback": {"red_gpio": 17, "green_gpio": 22, "blue_gpio": 27},
     "controls": {},
 }
 
@@ -70,7 +70,7 @@ def load(path: str | Path | None) -> dict:
     # output can damage the Pi, so refuse to start.
     pins = {}
     for section, keys in (("buttons", ("shutter_gpio", "power_gpio")),
-                          ("feedback", ("ok_gpio", "warn_gpio"))):
+                          ("feedback", ("red_gpio", "green_gpio", "blue_gpio"))):
         for key in keys:
             n = cfg[section][key]
             if n < 0:

@@ -59,14 +59,15 @@ power_hold_s = 2.0
 bounce_s = 0.03
 
 [feedback]
-# One two-colour LED, common ground, one GPIO per colour. -1 = not wired.
-# Check which colour is which with `python -m konicaback led`, and swap the two
-# numbers if they're the wrong way round.
-#   ok_gpio:   colour for ready (1 blink), armed (solid: fire the shutter now),
-#              saved (2 blinks)
-#   warn_gpio: colour for "no light arrived in time" or an error (1 long blink)
-ok_gpio = 22
-warn_gpio = 27
+# One RGB LED, common ground, one GPIO per colour. -1 = not wired.
+# These three numbers are a guess: run `python -m konicaback led`, see which
+# colour each GPIO lights, then fix them here.
+#   green: armed (solid: fire the camera's shutter now) and saved (2 blinks)
+#   red:   no light arrived in time, or an error (1 long blink)
+#   blue:  ready at start-up (1 blink)
+red_gpio = 17
+green_gpio = 22
+blue_gpio = 27
 
 [controls]
 # Extra libcamera controls applied in both modes, for example:

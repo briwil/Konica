@@ -54,7 +54,7 @@ def main(argv=None) -> int:
     if cmd == "led":
         from .hardware import test_led
         fb = cfg["feedback"]
-        test_led(cfg, args.gpio or [p for p in (fb["ok_gpio"], fb["warn_gpio"]) if p >= 0])
+        test_led(cfg, args.gpio or [fb[k] for k in ("red_gpio", "green_gpio", "blue_gpio") if fb[k] >= 0])
         return 0
 
     if cmd == "run":
