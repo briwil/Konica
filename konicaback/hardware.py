@@ -5,6 +5,7 @@ import functools
 import logging
 import queue
 import time
+from pathlib import Path
 
 log = logging.getLogger(__name__)
 
@@ -94,8 +95,11 @@ class Feedback:
             led.close()
 
 
-def test_led(cfg: dict, pins: list[int]) -> None:
-    """Light each LED pin in turn so you can see which colour is which."""
+def test_led(cfg: dict, pins: list[int], config_path: str | None = None) -> None:
+    """Light one pin at a time and ask which colour it is, then save the answers.
+
+    No timing to match: each pin stays lit until you answer."""
+    import re
     from gpiozero import LED
 
     used = {cfg["buttons"]["shutter_gpio"], cfg["buttons"]["power_gpio"]} - {-1}
@@ -103,23 +107,48 @@ def test_led(cfg: dict, pins: list[int]) -> None:
     if clash:
         raise SystemExit(f"GPIO{clash[0]} is a button pin in config.toml; "
                          "driving it as an LED could damage the Pi. Not running.")
-    names = {cfg["feedback"].get(f"{n}_gpio"): n for n in Feedback.NAMES}
-    leds = [(p, LED(p)) for p in pins]
-    print("Lighting each pin in turn, 3 rounds. Don't press any buttons.", flush=True)
-    try:
-        for _ in range(3):
-            for pin, led in leds:
-                label = f"config says {names[pin]}" if pin in names else "not in config"
-                print(f"  GPIO{pin} (header pin {PHYSICAL.get(pin, '?')}, {label}) on", flush=True)
-                led.on()
-                time.sleep(1.0)
-                led.off()
-                time.sleep(0.4)
-    finally:
-        for _, led in leds:
+    colour = {"r": "red", "g": "green", "b": "blue"}
+    answers = {}
+    print("Each pin stays lit until you answer. Don't press any buttons.\n", flush=True)
+    for pin in pins:
+        led = LED(pin)
+        try:
+            led.on()
+            while True:
+                a = input(f"GPIO{pin} (header pin {PHYSICAL.get(pin, '?')}) is ON now. "
+                          "What colour? r = red, g = green, b = blue, n = nothing visible (a faint colour still counts): "
+                          ).strip().lower()[:1]
+                if a in ("r", "g", "b", "n"):
+                    break
+                print("  Please type r, g, b or n.")
+        finally:
+            led.off()
             led.close()
-    print("Done. Which colour did each GPIO show? Set red_gpio, green_gpio and "
-          "blue_gpio in config.toml (under [feedback]) to match.")
+        answers[pin] = a
+
+    chosen = {}
+    for pin, a in answers.items():
+        if a == "n":
+            continue
+        if colour[a] in chosen:
+            print(f"\nYou gave {colour[a]} for two pins (GPIO{chosen[colour[a]]} and "
+                  f"GPIO{pin}). Nothing saved; run the test again.")
+            return
+        chosen[colour[a]] = pin
+    lines = {name: chosen.get(name, -1) for name in colour.values()}
+    print("\nResult:")
+    for name, pin in lines.items():
+        print(f"  {name}_gpio = {pin}")
+    if not config_path or not Path(config_path).exists():
+        print("No config.toml found; put those lines under [feedback] yourself.")
+        return
+    text = Path(config_path).read_text()
+    for name, pin in lines.items():
+        text, n = re.subn(rf"(?m)^(\s*{name}_gpio\s*=\s*)-?\d+", rf"\g<1>{pin}", text)
+        if n == 0:
+            print(f"Couldn't find {name}_gpio in {config_path}; add it by hand.")
+    Path(config_path).write_text(text)
+    print(f"Saved to {config_path}.")
 
 
 def find_buttons() -> None:

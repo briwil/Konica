@@ -3,7 +3,7 @@
     python -m konicaback run            # the service (what systemd runs)
     python -m konicaback shoot          # take one photo from an SSH session
     python -m konicaback buttons        # find which GPIOs the buttons are on
-    python -m konicaback led [GPIO ...] # light the LED colours in turn (default: configured pins)
+    python -m konicaback led [GPIO ...] # ask which colour each LED pin shows; saves it
     python -m konicaback info           # camera modes and memory check
 """
 from __future__ import annotations
@@ -54,7 +54,8 @@ def main(argv=None) -> int:
     if cmd == "led":
         from .hardware import test_led
         fb = cfg["feedback"]
-        test_led(cfg, args.gpio or [fb[k] for k in ("red_gpio", "green_gpio", "blue_gpio") if fb[k] >= 0])
+        test_led(cfg, args.gpio or [fb[k] for k in ("red_gpio", "green_gpio", "blue_gpio") if fb[k] >= 0],
+                 args.config)
         return 0
 
     if cmd == "run":

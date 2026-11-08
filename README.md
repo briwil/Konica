@@ -57,10 +57,10 @@ set by the `led` test below.
    .venv/bin/python -m konicaback led       # lights each LED colour in turn
    ```
    The shutter default matches the wiring above. The LED's red/green/blue
-   pin numbers are a guess: the `led` test lights each pin in turn, so
-   note the colour of each and set `red_gpio`, `green_gpio` and `blue_gpio`
-   under `[feedback]` in `config.toml`. The program refuses to start if one
-   pin is used twice, and the `led` test refuses to drive a button pin.
+   pin numbers are a guess, so the `led` test lights one pin at a time, waits,
+   and asks which colour you see (r, g, b, or n for nothing visible). It then saves your
+   answers to `config.toml`. The program refuses to start if one pin is used
+   twice, and the `led` test refuses to drive a button pin.
 4. `sudo systemctl start konica-back`
 
 ## Updates
