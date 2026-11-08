@@ -52,7 +52,7 @@ merge_split_frames = true
 [buttons]
 # BCM GPIO numbers; -1 = not wired. Each button connects its pin to ground.
 # Run `python -m konicaback buttons` to check which pin a button is on.
-shutter_gpio = 18
+shutter_gpio = 17
 power_gpio = -1       # not wired; shut down over SSH: sudo shutdown now
 # Hold the power button this long to shut down (only if power_gpio is wired).
 power_hold_s = 2.0
@@ -65,7 +65,7 @@ bounce_s = 0.03
 #   green: armed (solid: fire the camera's shutter now) and saved (2 blinks)
 #   red:   no light arrived in time, or an error (1 long blink)
 #   blue:  ready at start-up (1 blink)
-red_gpio = 17
+red_gpio = 18
 green_gpio = 22
 blue_gpio = 27
 

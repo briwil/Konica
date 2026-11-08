@@ -27,12 +27,12 @@ DEFAULTS = {
         "merge_split_frames": True,
     },
     "buttons": {
-        "shutter_gpio": 18,
+        "shutter_gpio": 17,
         "power_gpio": -1,
         "power_hold_s": 2.0,
         "bounce_s": 0.03,
     },
-    "feedback": {"red_gpio": 17, "green_gpio": 22, "blue_gpio": 27},
+    "feedback": {"red_gpio": 18, "green_gpio": 22, "blue_gpio": 27},
     "controls": {},
 }
 

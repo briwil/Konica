@@ -31,8 +31,8 @@ down over SSH with `sudo shutdown now` before switching off the battery.
 (If you wire a power button later, set `power_gpio` in `config.toml`; holding
 it for 2 s then shuts down cleanly.)
 
-**Wiring (BCM GPIO):** shutter button on GPIO18 (header pin 12) to ground;
-RGB LED on GPIO17 (pin 11), GPIO22 (pin 15) and GPIO27 (pin 13), common
+**Wiring (BCM GPIO):** shutter button on GPIO17 (header pin 11) to ground;
+RGB LED on GPIO18 (pin 12), GPIO22 (pin 15) and GPIO27 (pin 13), common
 ground, each colour through its own resistor. Which GPIO is which colour is
 set by the `led` test below.
 

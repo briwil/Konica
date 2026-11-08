@@ -143,20 +143,20 @@ def test_storage_numbering():
 def test_config_example_parses():
     cfg = load(Path(__file__).resolve().parent.parent / "config.example.toml")
     assert cfg["capture"]["mode"] == "lens"
-    assert cfg["buttons"]["shutter_gpio"] == 18 and cfg["buttons"]["power_gpio"] == -1
+    assert cfg["buttons"]["shutter_gpio"] == 17 and cfg["buttons"]["power_gpio"] == -1
     fb = cfg["feedback"]
-    assert (fb["red_gpio"], fb["green_gpio"], fb["blue_gpio"]) == (17, 22, 27)
+    assert (fb["red_gpio"], fb["green_gpio"], fb["blue_gpio"]) == (18, 22, 27)
 
 
 def test_pin_collision_rejected():
     import tomllib  # noqa: F401
     with tempfile.TemporaryDirectory() as d:
         f = Path(d) / "c.toml"
-        f.write_text("[feedback]\ngreen_gpio = 18\n")  # 18 is the shutter button
+        f.write_text("[feedback]\ngreen_gpio = 17\n")  # 17 is the shutter button
         try:
             load(f)
         except ValueError as e:
-            assert "GPIO18" in str(e)
+            assert "GPIO17" in str(e)
         else:
             raise AssertionError("pin collision was not rejected")
 
